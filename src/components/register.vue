@@ -1,52 +1,130 @@
 <script setup>
+import useVuelidate from '@vuelidate/core';
+import { required, email, helpers, minLength } from '@vuelidate/validators';
+import { computed } from '@vue/reactivity';
+import { ref } from 'vue';
+
+const form = ref({
+  firstname: '',
+  lastname: '',
+  email: '',
+  psw: '',
+})
+
+const rules = computed(() => ({
+  firstname: { required: helpers.withMessage('First Name tidak boleh kosong', required) },
+  lastname: { required: helpers.withMessage('Last Name tidak boleh kosong', required) },
+  psw: { required: helpers.withMessage('Password tidak boleh kosong', required), minLength: helpers.withMessage('Password minimal 8 karakter', minLength(8)) },
+
+  email: { required: helpers.withMessage('Email tidak boleh kosong', required), email: helpers.withMessage('Format email tidak valid', email) },
+}))
+
+const v$ = useVuelidate(rules, form);
+
+const submitRegister = async () => {
+  const formIsCorrect = await (v$.value.$validate());
+  if (!formIsCorrect) return;
+  console.log(form.value);
+}
 
 </script>
 
 <template>
-<form method="post">
-  <div class="logintext">
-    <h1>Login to your Account</h1>
-  </div>
+  <form @submit.prevent="submitRegister">
+    <div class="logintext">
+      <h1>Create your Account</h1>
+    </div>
 
-  <div class="container">
-    <label for="uname" class="email"><b>Email Address</b></label>
-    <input type="text" placeholder="Email Address" name="uname" required>
+    <div class="container">
 
-    <label for="psw" class="pw"><b>Password</b></label>
-    <input type="password" placeholder="Enter Password" name="psw" required>
+      <div class="tono">
+        <label for="firstname" class="email"><b>First Name</b></label>
+        <input :class="{ 'border-danger': v$.firstname.$error }" type="text" placeholder="First Name"
+          v-model="form.firstname">
+        <span v-if="v$.firstname.$error" class="text-danger error-message">
+          {{ v$.firstname.$errors[0].$message }}
+        </span>
+      </div>
 
-    <label for="uname" class="email"><b>Email Address</b></label>
-    <input type="text" placeholder="Email Address" name="uname" required>
+      <div class="tono">
+        <label for="lastname" class="email"><b>Last Name</b></label>
+        <input :class="{ 'border-danger': v$.lastname.$error }" type="text" placeholder="Second Name"
+          v-model="form.lastname">
+        <span v-if="v$.lastname.$error" class="text-danger error-message">
+          {{ v$.lastname.$errors[0].$message }}
+        </span>
+      </div>
 
-    <label for="psw" class="pw"><b>Password</b></label>
-    <input type="password" placeholder="Enter Password" name="psw" required>
+      <div class="tono">
+        <label for="email" class="email"><b>Email Address</b></label>
+        <input :class="{ 'border-danger': v$.email.$error }" type="text" placeholder="Email Address"
+          v-model="form.email">
+        <span v-if="v$.email.$error" class="text-danger error-message">
+          {{ v$.email.$errors[0].$message }}
+        </span>
+      </div>
 
-    <button type="button">Login</button>
+      <div class="tono">
+        <label for="psw" class="pw"><b>Password</b></label>
+        <input :class="{ 'border-danger': v$.psw.$error }" type="password" placeholder="Enter Password"
+          v-model="form.psw" minlength="8">
+        <span v-if="v$.psw.$error" class="text-danger error-message">
+          {{ v$.psw.$errors[0].$message }}
+        </span>
+      </div>
 
-  </div>
 
-  <!-- <div class="container" style="background-color:#f1f1f1">
-    <button type="button" class="cancelbtn">Register</button>
-  </div> -->
-</form>
-<b>
-</b>
- <div class="registertext">
-    <p>Don't have an account?  <a href="">Register</a></p> 
+      <div class="text">
+        <label>
+          <input type="checkbox" checked="checked" v-model="agree"> To register with us please tick to agree to our
+          <a class="bluetext">Terms and Condition</a>
+        </label>
+      </div>
 
-<b>
-</b>
-  
-    <p>Forgotten your password?  <a href="">Recover Password</a></p> 
+
+      <button type="submit">Register</button>
+
+
+
+    </div>
+
+  </form>
+  <b>
+  </b>
+  <div class="registertext">
+    <p>Already have account? <router-link to="/">Sign In</router-link>
+    </p>
   </div>
 
 </template>
 
 <style scoped>
-a{
+
+.border-danger{
+  border: 7px solid red !important;
+}
+.text-danger {
+  color: red;
+}
+
+.text {
+  margin: 25px 0 25px 0;
+  color: black;
+}
+
+.bluetext {
+  color: #478CCC;
+}
+
+h1 {
+  padding-top: 25px;
+}
+
+a {
   color: #f1f1f1;
 }
-.registertext{
+
+.registertext {
   padding-top: 30px;
   text-align: center;
 }
@@ -54,9 +132,12 @@ a{
 form {
   background-color: #f1f1f1;
   border-radius: 3px;
+  width: 500px;
+  height: 770px;
 }
 
-input[type=text], input[type=password] {
+input[type=text],
+input[type=password] {
   width: 100%;
   padding: 12px 20px;
   margin: 8px 0;
@@ -103,7 +184,7 @@ button:hover {
 .logintext {
   color: #3D4954;
   text-align: left;
-  margin: 24px 0 12px 33px;
+  margin: 35px 0 12px 33px;
 }
 
 /* Add padding to containers */
@@ -117,10 +198,12 @@ button:hover {
     display: block;
     float: none;
   }
+
   .cancelbtn {
     width: 100%;
   }
 }
+
 @media (min-width: 1024px) {
   header {
     display: flex;
